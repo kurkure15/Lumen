@@ -61,9 +61,6 @@ A few rules borrowed from Emil Kowalski's animation work:
 
 Portfolio prototype, not a production component. Out of scope on purpose: IME composition, paste handling, long text overflow, autofill, mobile keyboard quirks, font loading races, autocomplete. Build the happy path beautifully, ship the idea.
 
-## Credits
-
-Design and concept by Ankur ([kurkure15](https://github.com/kurkure15)). Built with Claude Code.
 
 ## License
 
