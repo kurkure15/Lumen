@@ -1,0 +1,70 @@
+<div style="padding: 0.5rem 0;">
+
+<div style="background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1.25rem; font-family: var(--font-mono); font-size: 13px; line-height: 1.65; color: var(--color-text-primary); white-space: pre-wrap;" data-prompt>Build a React + Framer Motion prototype called `FlashlightInput`. This is a portfolio/Twitter showcase piece, not a production component. Build the happy path beautifully. Skip defensive code, edge cases, IME composition, paste handling, long text overflow, and selection rendering. Single demo file. Tailwind for styling.
+
+## The metaphor
+The cursor is a flashlight in a dark room. Characters are only fully visible when the flashlight is touching them. Move the cursor away and they fade into the dark.
+
+## Initial state (the "thumbnail")
+The component mounts with the cursor positioned just before the placeholder text "Search by describing your issue..." — and the placeholder is FULLY ILLUMINATED because the flashlight is right there. This is critical: someone who never interacts should still see the metaphor at work. The placeholder isn't dim gray text — it's lit text, character #d4d4dc, sitting inside the flashlight's beam.
+
+## Visual setup
+- Container: 520px × 56px, background #0d0d14, 0.5px border rgba(255,255,255,0.08), 10px radius, 22px left padding, centered on a black page.
+- Cursor: 2px wide, 26px tall, color #b8b3ff, positioned via transform: translateX (never `left`).
+- Glow: a single static, pre-blurred element. Radial gradient, ~200px wide, ~140px tall, centered on the cursor X. Color stops: rgba(139,133,240,0.45) at center → rgba(139,133,240,0.15) at 35% → transparent at 65%. Moves with the cursor via transform only. Do NOT animate filter, blur, or box-shadow at any point.
+- Text layer: sans-serif, 16px, color #d4d4dc.
+
+## Behaviors (in priority order — build them in this sequence)
+
+**1. Light follows cursor**
+Cursor's translateX is driven by useSpring chasing the caret X position.
+Spring: { stiffness: 400, damping: 35, mass: 0.8 }
+Fast typing produces a tiny lag — the light catches up. This is why we use a spring, not a CSS transition.
+
+**2. Distance-based opacity**
+Each character's opacity is computed from its distance to the cursor's spring-driven X.
+- Within 60px of cursor: opacity 1
+- 60–140px: linear falloff to 0
+- Beyond 140px: opacity 0 (fully dark — commit to the metaphor)
+Update via direct style refs in a useMotionValueEvent listener on the cursor spring. Never via React state — re-rendering on every frame drops frames.
+
+**3. Placeholder behavior**
+Placeholder renders as text spans inside the same render layer as user-typed text — same opacity logic applies to it. On mount, cursor sits at x=0 with the placeholder right next to it, so the first 6–8 characters are fully lit and the rest fade naturally into the dark. This IS the prototype's hero state.
+On first keystroke (input event with new content), fade the entire placeholder out over 200ms ease-out, then start rendering the user's typed characters in its place. Once cleared, placeholder does not return — even if the user deletes everything back to empty.
+
+**4. Pause-aware breathing**
+After 800ms with no keystrokes (and the input is focused), the cursor enters a CSS keyframes pulse: opacity 0.55 ↔ 1, 1.6s ease-in-out infinite. Resume typing → remove the class, opacity snaps to 1. This is a className toggle, not a Framer animation.
+
+**5. Backspace cool-shift**
+On Backspace keydown, swap cursor color from #b8b3ff to #8a8db0 for 200ms via a className toggle. Characters being deleted fade out over 120ms before unmounting (use AnimatePresence with mode="popLayout").
+
+## Architecture
+- Real `<input>` element underneath, opacity 0, `caret-color: transparent`. It owns the actual text state and selection.
+- Visually-hidden measuring span in the same font, used to compute per-character X positions.
+- Render layer of `<span>` elements (one per character) absolutely positioned over the real input — each receives opacity via direct style ref updates.
+- Cursor and glow are siblings, both transformed by the same spring.
+- On every input/click/keyup event, sync the visual cursor X to the real input's selectionStart by measuring the substring up to that index.
+
+## Emil's non-negotiables
+- Only animate transform and opacity. Never box-shadow, filter, width, or color (color shifts via className toggle, not transition).
+- Easing for any non-spring animation: cubic-bezier(0.215, 0.61, 0.355, 1).
+- Input font-size: 16px.
+- aria-label="Describe your issue".
+- useReducedMotion: when true, disable the spring (cursor jumps), disable the placeholder fade, disable the breathing pulse, disable the backspace dim. Distance-based opacity stays — that's not motion, that's a static lighting model.
+- Wrap in a `<form>` so Enter is meaningful (no submit handler needed for the prototype, just don't break the convention).
+
+## Out of scope
+IME composition, text selection visuals, paste, autofill, long text scrolling, mobile keyboard quirks, ResizeObserver, font loading races, autocomplete, suggestions, submit handling, cycling placeholders. If a question comes up about any of these, the answer is "v2."
+
+## Deliverable
+- `FlashlightInput.tsx` — the component
+- `App.tsx` or `page.tsx` — black background, component centered vertically and horizontally, nothing else
+- One file is fine if simpler. No external CSS files. Tailwind utilities or a single styled-jsx block.</div>
+
+<div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+  <button onclick="const t=document.querySelector('[data-prompt]').textContent; navigator.clipboard.writeText(t); this.textContent='Copied'; setTimeout(()=>this.textContent='Copy prompt', 1500)" style="font-size: 13px;">Copy prompt</button>
+  <button onclick="sendPrompt('Build the FlashlightInput prototype as an artifact now using this v2 prompt.')" style="font-size: 13px;">Build it as artifact ↗</button>
+  <button onclick="sendPrompt('What three things would Emil still push back on in the v2 prompt? Be brutal.')" style="font-size: 13px;">Critique v2 ↗</button>
+</div>
+
+</div>

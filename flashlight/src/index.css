@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #000;
+  color: #fff;
+}
+
+@keyframes flashlight-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.flashlight-breathe {
+  animation: flashlight-breathe 1.6s ease-in-out infinite;
+}
+
+/* Suppress the native selection highlight on the invisible input. opacity: 0
+   doesn't reliably hide ::selection in all browsers, so we zero it explicitly. */
+.flashlight-input::selection {
+  background: transparent;
+  color: transparent;
+}
