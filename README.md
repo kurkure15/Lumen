@@ -65,8 +65,6 @@ Portfolio prototype, not a production component. Out of scope on purpose: IME co
 
 Design and concept by Ankur ([kurkure15](https://github.com/kurkure15)). Built with Claude Code.
 
-Animation principles drawn from [Emil Kowalski's animations course](https://animations.dev).
-
 ## License
 
 MIT — do whatever, attribution appreciated.
