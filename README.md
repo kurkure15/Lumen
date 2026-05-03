@@ -41,7 +41,7 @@ The "past the cursor" rule is checked against the spring's *target* (not its cur
 ## Running it
 
 ```bash
-cd flashlight
+cd lumen
 npm install
 npm run dev
 ```

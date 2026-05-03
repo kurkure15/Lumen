@@ -94,7 +94,7 @@ const computeCharOpacity = (
 
 type UserChar = { id: string; char: string; x: number };
 
-export default function FlashlightInput() {
+export default function Lumen() {
   const reduced = useReducedMotion() ?? false;
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -226,7 +226,12 @@ export default function FlashlightInput() {
   };
 
   useEffect(() => {
-    inputRef.current?.focus();
+    // Autofocus on desktop only; on touch devices this would pop up the
+    // on-screen keyboard the moment the page loads, which is hostile.
+    const isTouch =
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(hover: none)').matches || 'ontouchstart' in window);
+    if (!isTouch) inputRef.current?.focus();
     armBreathing();
     return () => {
       if (breatheTimer.current !== null) clearTimeout(breatheTimer.current);
@@ -298,7 +303,7 @@ export default function FlashlightInput() {
           >
             <motion.div
               className={
-                breathing && chars.length > 0 ? 'flashlight-breathe' : ''
+                breathing && chars.length > 0 ? 'lumen-breathe' : ''
               }
               style={{
                 position: 'absolute',
@@ -323,18 +328,18 @@ export default function FlashlightInput() {
                 xmlns="http://www.w3.org/2000/svg"
                 style={{ display: 'block', overflow: 'visible' }}
               >
-                <g filter="url(#flashlight-blur)">
+                <g filter="url(#lumen-beam-blur)">
                   {/* Latest Figma export — already mirrored: narrow source on
                       the right (cursor side), wide end fanning to the left. */}
                   <path
                     d="M113.334 12.0324L8.57784 3.7251L8 50.2283L113.334 43.7368V12.0324Z"
-                    fill="url(#flashlight-grad)"
+                    fill="url(#lumen-beam-grad)"
                     fillOpacity="0.3"
                   />
                 </g>
                 <defs>
                   <filter
-                    id="flashlight-blur"
+                    id="lumen-beam-blur"
                     x="-20"
                     y="-20"
                     width="162"
@@ -351,7 +356,7 @@ export default function FlashlightInput() {
                           rgba(10,10,27,0.30) 42.48%)
                       mirrored. */}
                   <linearGradient
-                    id="flashlight-grad"
+                    id="lumen-beam-grad"
                     x1="128.11"
                     y1="26.9767"
                     x2="-6.31431"
@@ -417,7 +422,7 @@ export default function FlashlightInput() {
             }}
           >
             <div
-              className={breathing ? 'flashlight-breathe' : ''}
+              className={breathing ? 'lumen-breathe' : ''}
               style={{
                 position: 'absolute',
                 top: '50%',
@@ -440,7 +445,7 @@ export default function FlashlightInput() {
           {/* Real input — owns text state, visually hidden */}
           <input
             ref={inputRef}
-            className="flashlight-input"
+            className="lumen-input"
             type="text"
             aria-label="Describe your issue"
             value={value}
@@ -452,6 +457,8 @@ export default function FlashlightInput() {
             onBlur={handleBlur}
             autoComplete="off"
             spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
             style={{
               position: 'absolute',
               inset: 0,
@@ -487,44 +494,49 @@ export default function FlashlightInput() {
             }}
           />
         </div>
-
-          {/* Light toggle — flips the flashlight metaphor on/off */}
-          <button
-            type="button"
-            aria-label={lightOn ? 'Turn light off' : 'Turn light on'}
-            aria-pressed={lightOn}
-            onClick={() => setLightOn((v) => !v)}
-            style={{
-              position: 'absolute',
-              left: 336,
-              top: 16,
-              width: 24,
-              height: 24,
-              padding: 0,
-              margin: 0,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              outline: 'none',
-              color: lightOn ? '#A09DFF' : '#5b5b66',
-              transition: 'color 200ms cubic-bezier(0.215, 0.61, 0.355, 1)',
-            }}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ display: 'block' }}
-            >
-              <path
-                d="M9.80278 18.0861C9.19352 17.4769 8.88889 16.7444 8.88889 15.8889H6.55556C6.12778 15.8889 5.76157 15.7366 5.45694 15.4319C5.15231 15.1273 5 14.7611 5 14.3333C5 12.5185 5.5963 10.9532 6.78889 9.6375C7.98148 8.32176 9.45926 7.56667 11.2222 7.37222V5H12.7778V7.37222C14.5407 7.56667 16.0185 8.32176 17.2111 9.6375C18.4037 10.9532 19 12.5185 19 14.3333C19 14.7611 18.8477 15.1273 18.5431 15.4319C18.2384 15.7366 17.8722 15.8889 17.4444 15.8889H15.1111C15.1111 16.7444 14.8065 17.4769 14.1972 18.0861C13.588 18.6954 12.8556 19 12 19C11.1444 19 10.412 18.6954 9.80278 18.0861ZM6.55556 14.3333H17.4444C17.4444 12.8296 16.913 11.5463 15.85 10.4833C14.787 9.42037 13.5037 8.88889 12 8.88889C10.4963 8.88889 9.21296 9.42037 8.15 10.4833C7.08704 11.5463 6.55556 12.8296 6.55556 14.3333Z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
         </div>
+
+        {/* Light toggle — sibling of the clipped layer so the 44×44 hit area
+            isn't trimmed by the squircle clip-path. Visual icon stays at the
+            same 24×24 position via padding-and-offset. */}
+        <button
+          type="button"
+          className="lumen-toggle"
+          aria-label={lightOn ? 'Turn light off' : 'Turn light on'}
+          aria-pressed={lightOn}
+          onClick={() => setLightOn((v) => !v)}
+          style={{
+            position: 'absolute',
+            left: 326,
+            top: 6,
+            width: 44,
+            height: 44,
+            padding: 10,
+            margin: 0,
+            border: 'none',
+            background: 'transparent',
+            color: lightOn ? '#A09DFF' : '#5b5b66',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            touchAction: 'manipulation',
+            cursor: 'pointer',
+          }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ display: 'block' }}
+          >
+            <path
+              d="M9.80278 18.0861C9.19352 17.4769 8.88889 16.7444 8.88889 15.8889H6.55556C6.12778 15.8889 5.76157 15.7366 5.45694 15.4319C5.15231 15.1273 5 14.7611 5 14.3333C5 12.5185 5.5963 10.9532 6.78889 9.6375C7.98148 8.32176 9.45926 7.56667 11.2222 7.37222V5H12.7778V7.37222C14.5407 7.56667 16.0185 8.32176 17.2111 9.6375C18.4037 10.9532 19 12.5185 19 14.3333C19 14.7611 18.8477 15.1273 18.5431 15.4319C18.2384 15.7366 17.8722 15.8889 17.4444 15.8889H15.1111C15.1111 16.7444 14.8065 17.4769 14.1972 18.0861C13.588 18.6954 12.8556 19 12 19C11.1444 19 10.412 18.6954 9.80278 18.0861ZM6.55556 14.3333H17.4444C17.4444 12.8296 16.913 11.5463 15.85 10.4833C14.787 9.42037 13.5037 8.88889 12 8.88889C10.4963 8.88889 9.21296 9.42037 8.15 10.4833C7.08704 11.5463 6.55556 12.8296 6.55556 14.3333Z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
         {/* Squircle border — drawn on top so the stroke isn't clipped */}
         <svg
           aria-hidden

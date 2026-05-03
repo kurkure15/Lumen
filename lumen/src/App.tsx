@@ -1,4 +1,4 @@
-import FlashlightInput from './FlashlightInput';
+import Lumen from './Lumen';
 
 export default function App() {
   return (
@@ -12,7 +12,7 @@ export default function App() {
         justifyContent: 'center',
       }}
     >
-      <FlashlightInput />
+      <Lumen />
     </div>
   );
 }
